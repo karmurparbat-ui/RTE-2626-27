@@ -3,78 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>સ્માર્ટ શાળા રિપોર્ટિંગ સિસ્ટમ</title>
+    <title>સ્માર્ટ શાળા અને વિદ્યાર્થી રિપોર્ટિંગ સિસ્ટમ</title>
     
-    <!-- ફોન્ટ્સ અને આઈકોન માટે -->
     <link href="https://fonts.googleapis.com/css2?family=Mukta+Vaani:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- રિપોર્ટ ડાઉનલોડ કરવા માટેના પ્લગઇન્સ (Libraries) -->
-    <!-- Excel ડાઉનલોડ માટે -->
+    <!-- પ્લગઇન્સ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- PDF ડાઉનલોડ માટે -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- ડેટાને પરફેક્ટ વાંચવા માટે -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
     <style>
-        /* સુંદર ડિઝાઇન (CSS) */
         body { font-family: 'Mukta Vaani', sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; color: #333; }
         .container { max-width: 1300px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); }
-        
         .header-title { text-align: center; color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px; font-size: 28px; }
         
         .controls-wrapper { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 25px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        select { padding: 10px 15px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 16px; min-width: 180px; outline: none; background: white; cursor: pointer; }
         
-        select { padding: 10px 15px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 16px; min-width: 200px; outline: none; background: white; cursor: pointer; }
-        select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-        
-        button { padding: 10px 20px; border-radius: 6px; font-size: 16px; font-weight: bold; color: white; border: none; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
-        .btn-excel { background-color: #10b981; } /* લીલો કલર */
-        .btn-excel:hover { background-color: #059669; }
-        .btn-pdf { background-color: #ef4444; } /* લાલ કલર */
-        .btn-pdf:hover { background-color: #dc2626; }
-        .btn-print { background-color: #6366f1; } /* જાંબલી કલર */
-        .btn-print:hover { background-color: #4f46e5; }
+        button { padding: 10px 20px; border-radius: 6px; font-size: 16px; font-weight: bold; color: white; border: none; cursor: pointer; transition: 0.3s; }
+        .btn-excel { background-color: #10b981; } .btn-excel:hover { background-color: #059669; }
+        .btn-pdf { background-color: #ef4444; } .btn-pdf:hover { background-color: #dc2626; }
+        .btn-print { background-color: #6366f1; } .btn-print:hover { background-color: #4f46e5; }
 
         .table-wrapper { overflow-x: auto; max-height: 600px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
         table { width: 100%; border-collapse: collapse; min-width: 900px; background: white; }
-        th, td { border: 1px solid #e2e8f0; padding: 12px 15px; text-align: left; font-size: 15px; }
-        th { background-color: #1e293b; color: white; position: sticky; top: 0; z-index: 10; text-transform: uppercase; letter-spacing: 0.5px; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; font-size: 14px; }
+        th { background-color: #1e293b; color: white; position: sticky; top: 0; z-index: 10; }
         tr:nth-child(even) { background-color: #f8fafc; }
-        tr:hover { background-color: #e0f2fe; } /* માઉસ ફેરવતા ભૂરો કલર */
+        tr:hover { background-color: #e0f2fe; }
 
         #loading { text-align: center; font-size: 18px; color: #d97706; padding: 20px; font-weight: bold; display: none; }
-        #reportTitle { text-align: center; color: #334155; margin-bottom: 20px; font-size: 22px; }
+        #reportTitle { text-align: center; color: #334155; margin-bottom: 10px; font-size: 22px; }
+        .summary-count { text-align: center; font-size: 18px; font-weight: bold; color: #047857; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1 class="header-title">🏫 સ્માર્ટ શાળા રિપોર્ટિંગ અને ડેટા સેન્ટર</h1>
+        <h1 class="header-title">🏫 સ્માર્ટ શાળા અને વિદ્યાર્થી રિપોર્ટિંગ સિસ્ટમ</h1>
         
         <div class="controls-wrapper">
-            <!-- શીટ સિલેક્ટ કરવાનું ડ્રોપડાઉન -->
+            <!-- કઈ શીટ જોવી છે? -->
             <select id="sheetSelect" onchange="loadSheetData()">
-                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFyzMbBAmk86aQ2GHve4p_3bYKM7syasf3Rw458k9YOAqejxzdCuoeP32dAiF6rMNe2aIHXuuEXcn/pub?output=csv">વર્કબુક: મુખ્ય રિપોર્ટ (EKANDAR)</option>
-                <!-- નોંધ: બીજી શીટ ઉમેરવા માટે અહી નીચે નવી ઓપ્શન લાઈન ઉમેરવી અને તેમાં નવી લિંક નાખવી -->
-                <!-- <option value="તમારી_બીજી_શીટની_લિંક_અહી_નાખો">વર્કબુક: વિદ્યાર્થી LEFT</option> -->
+                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFyzMbBAmk86aQ2GHve4p_3bYKM7syasf3Rw458k9YOAqejxzdCuoeP32dAiF6rMNe2aIHXuuEXcn/pub?output=csv">વર્કબુક: મુખ્ય ડેટા (EKANDAR)</option>
+                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFyzMbBAmk86aQ2GHve4p_3bYKM7syasf3Rw458k9YOAqejxzdCuoeP32dAiF6rMNe2aIHXuuEXcn/pub?output=csv">વર્કબુક: વિદ્યાર્થી (Students)</option>
+                <!-- જો ભવિષ્યમાં નવી સાચી લિંક મળે તો ઉપરના value="..." માં પેસ્ટ કરી દેવી -->
             </select>
 
-            <!-- શાળા સિલેક્ટ કરવાનું ડ્રોપડાઉન -->
+            <!-- કઈ શાળાનો રિપોર્ટ? -->
             <select id="schoolSelect" onchange="generateReport()">
                 <option value="All">બધી શાળાઓ (All)</option>
             </select>
 
-            <button class="btn-excel" onclick="downloadExcel()">📊 Excel માં ડાઉનલોડ</button>
+            <!-- કયા ધોરણનો રિપોર્ટ? -->
+            <select id="stdSelect" onchange="generateReport()">
+                <option value="All">બધા ધોરણ (All Std)</option>
+            </select>
+
+            <button class="btn-excel" onclick="downloadExcel()">📊 Excel ડાઉનલોડ</button>
             <button class="btn-pdf" onclick="downloadPDF()">📄 PDF ડાઉનલોડ</button>
             <button class="btn-print" onclick="window.print()">🖨️ પ્રિન્ટ</button>
         </div>
 
-        <div id="loading">ડેટા લોડ થઈ રહ્યો છે... કૃપા કરીને રાહ જુઓ ⏳</div>
+        <div id="loading">ડેટા લોડ થઈ રહ્યો છે... ⏳</div>
 
-        <!-- આ વિસ્તારની પ્રિન્ટ અને PDF નીકળશે -->
         <div id="reportArea">
             <h2 id="reportTitle">બધી શાળાઓનો રિપોર્ટ</h2>
+            <div id="totalCount" class="summary-count">કુલ વિદ્યાર્થીઓ: 0</div>
+            
             <div class="table-wrapper">
                 <table id="dataTable">
                     <thead><tr id="tableHeader"></tr></thead>
@@ -86,8 +82,10 @@
 
     <script>
         let globalData = [];
+        let schoolColIdx = -1;
+        let stdColIdx = -1;
+        let headerRowIdx = 0;
 
-        // પેજ ખુલે એટલે ઓટોમેટીક પહેલી શીટ લોડ થશે
         window.onload = () => loadSheetData();
 
         function loadSheetData() {
@@ -96,83 +94,109 @@
             document.getElementById('tableBody').innerHTML = '';
             document.getElementById('tableHeader').innerHTML = '';
 
-            // PapaParse નો ઉપયોગ ડેટાને ભૂલ વગર (કોમાની ભૂલ વગર) વાંચવા માટે
             Papa.parse(url, {
                 download: true,
                 header: false,
                 complete: function(results) {
                     globalData = results.data;
                     document.getElementById('loading').style.display = 'none';
-                    populateDropdown();
+                    findHeaderAndColumns();
+                    populateDropdowns();
                     generateReport();
                 },
-                error: function() {
-                    alert("ડેટા લોડ કરવામાં મુશ્કેલી આવી છે. કૃપા કરીને ઇન્ટરનેટ કનેક્શન તપાસો.");
-                }
+                error: function() { alert("ડેટા લોડ કરવામાં મુશ્કેલી આવી છે."); }
             });
         }
 
-        // શાળાના નામ શોધવા માટે
-        function populateDropdown() {
-            const select = document.getElementById('schoolSelect');
-            select.innerHTML = '<option value="All">બધી શાળાઓ (All)</option>'; 
-            const schoolNames = new Set();
+        // હેડર લાઈન અને કોલમ નંબર ઓટોમેટીક શોધવા
+        function findHeaderAndColumns() {
+            schoolColIdx = -1; stdColIdx = -1; headerRowIdx = 0;
+            
+            for(let i=0; i<10; i++) {
+                if(!globalData[i]) continue;
+                for(let j=0; j<globalData[i].length; j++) {
+                    let cellVal = globalData[i][j] ? globalData[i][j].toString().trim() : "";
+                    if(cellVal.includes("શાળાનું નામ") || cellVal.includes("શાળા")) {
+                        schoolColIdx = j;
+                        headerRowIdx = i;
+                    }
+                    if(cellVal === "ધોરણ" || cellVal.includes("Std") || cellVal.includes("Standard")) {
+                        stdColIdx = j;
+                    }
+                }
+                if(schoolColIdx !== -1) break; // જો હેડર મળી જાય તો લૂપ બંધ કરો
+            }
+            // જો શાળાની કોલમ ન મળે તો ડિફોલ્ટ પહેલી કોલમ ધારી લઈએ
+            if(schoolColIdx === -1) schoolColIdx = 0; 
+        }
 
-            for (let i = 0; i < globalData.length; i++) {
+        function populateDropdowns() {
+            const schoolSelect = document.getElementById('schoolSelect');
+            const stdSelect = document.getElementById('stdSelect');
+            schoolSelect.innerHTML = '<option value="All">બધી શાળાઓ (All)</option>'; 
+            stdSelect.innerHTML = '<option value="All">બધા ધોરણ (All Std)</option>'; 
+
+            const schoolNames = new Set();
+            const stdNames = new Set();
+
+            for (let i = headerRowIdx + 1; i < globalData.length; i++) {
                 let row = globalData[i];
                 if(!row || row.length === 0) continue;
                 
-                let schoolName = row[0] || ""; // પહેલી કોલમમાં શાળાનું નામ છે
-                if (schoolName && schoolName.trim() !== "" && !schoolName.includes("શાળાનું નામ") && !schoolName.includes("Count of")) {
-                    schoolNames.add(schoolName.trim());
+                let schoolName = row[schoolColIdx] ? row[schoolColIdx].trim() : "";
+                if (schoolName && schoolName !== "" && !schoolName.includes("Count of")) {
+                    schoolNames.add(schoolName);
+                }
+
+                if(stdColIdx !== -1) {
+                    let stdName = row[stdColIdx] ? row[stdColIdx].trim() : "";
+                    if(stdName && stdName !== "") stdNames.add(stdName);
                 }
             }
 
-            // મૂળાક્ષરો પ્રમાણે ગોઠવવા (A to Z)
             Array.from(schoolNames).sort().forEach(school => {
-                let option = document.createElement('option');
-                option.value = school;
-                option.text = school;
-                select.appendChild(option);
+                schoolSelect.innerHTML += `<option value="${school}">${school}</option>`;
             });
+
+            // ધોરણને આંકડાકીય રીતે ગોઠવવા
+            Array.from(stdNames).sort((a,b) => a - b).forEach(std => {
+                stdSelect.innerHTML += `<option value="${std}">ધોરણ - ${std}</option>`;
+            });
+
+            // જો શીટમાં ધોરણ ન હોય તો ધોરણનું ડ્રોપડાઉન છુપાવી દેવું
+            stdSelect.style.display = (stdColIdx === -1 || stdNames.size === 0) ? 'none' : 'inline-block';
         }
 
-        // ટેબલ બનાવવા માટે
         function generateReport() {
             const selectedSchool = document.getElementById('schoolSelect').value;
+            const selectedStd = document.getElementById('stdSelect').value;
             const tableHeader = document.getElementById('tableHeader');
             const tableBody = document.getElementById('tableBody');
             
             tableHeader.innerHTML = '';
             tableBody.innerHTML = '';
-            if (globalData.length === 0) return;
+            if (globalData.length === 0 || !globalData[headerRowIdx]) return;
 
-            // હેડર લાઈન શોધવી (જે લાઈનમાં "શાળાનું નામ" લખ્યું હોય)
-            let headerIndex = 0;
-            for(let i=0; i<5; i++) {
-                if(globalData[i] && globalData[i][0] && globalData[i][0].includes("શાળાનું નામ")){
-                    headerIndex = i;
-                    break;
-                }
-            }
-            
-            // હેડર છાપવું
-            if(globalData[headerIndex]){
-                globalData[headerIndex].forEach(col => { 
-                    let th = document.createElement('th');
-                    th.textContent = col;
-                    tableHeader.appendChild(th);
-                });
-            }
+            // હેડર છાપો
+            globalData[headerRowIdx].forEach(col => { 
+                let th = document.createElement('th');
+                th.textContent = col;
+                tableHeader.appendChild(th);
+            });
 
-            // સિલેક્ટ કરેલી શાળા મુજબ ડેટા છાપવો
-            let reportHasData = false;
-            for (let i = headerIndex + 1; i < globalData.length; i++) {
+            let count = 0;
+            // ડેટા ફિલ્ટર કરો
+            for (let i = headerRowIdx + 1; i < globalData.length; i++) {
                 let row = globalData[i];
-                if(!row || row.length === 0 || !row[0]) continue;
+                if(!row || row.length === 0 || !row[schoolColIdx]) continue;
                 
-                let schoolNameInSheet = row[0] || ""; 
-                if (selectedSchool === 'All' || schoolNameInSheet.trim() === selectedSchool.trim()) {
+                let schoolMatch = (selectedSchool === 'All' || row[schoolColIdx].trim() === selectedSchool);
+                let stdMatch = true;
+                if(stdColIdx !== -1 && selectedStd !== 'All') {
+                    stdMatch = (row[stdColIdx] && row[stdColIdx].trim() === selectedStd);
+                }
+
+                if (schoolMatch && stdMatch) {
                     let tr = document.createElement('tr');
                     row.forEach(col => {
                         let td = document.createElement('td');
@@ -180,39 +204,37 @@
                         tr.appendChild(td);
                     });
                     tableBody.appendChild(tr);
-                    reportHasData = true;
+                    count++;
                 }
             }
 
-            if(!reportHasData){
-                tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; color:red;">કોઈ ડેટા મળ્યો નથી!</td></tr>';
+            if(count === 0){
+                tableBody.innerHTML = `<tr><td colspan="${globalData[headerRowIdx].length}" style="text-align:center; color:red;">કોઈ ડેટા મળ્યો નથી!</td></tr>`;
             }
 
-            // ટાઈટલ બદલવા માટે
-            let sheetNameText = document.getElementById('sheetSelect').options[document.getElementById('sheetSelect').selectedIndex].text;
-            document.getElementById('reportTitle').innerText = selectedSchool === 'All' ? sheetNameText + " (બધી શાળાઓ)" : selectedSchool + " નો રિપોર્ટ";
+            // ટાઈટલ અને કાઉન્ટર અપડેટ કરો
+            let title = "";
+            if(selectedSchool !== 'All') title += selectedSchool;
+            else title += "બધી શાળાઓ";
+            if(selectedStd !== 'All') title += ` (ધોરણ ${selectedStd})`;
+            
+            document.getElementById('reportTitle').innerText = title + " નો રિપોર્ટ";
+            document.getElementById('totalCount').innerText = `કુલ વિદ્યાર્થીઓ: ${count}`;
         }
 
-        // Excel ડાઉનલોડ ફંક્શન
         function downloadExcel() {
             var wb = XLSX.utils.table_to_book(document.getElementById('dataTable'), {sheet:"Report"});
-            var fileName = document.getElementById('schoolSelect').value === 'All' ? 'All_Schools' : document.getElementById('schoolSelect').value;
-            XLSX.writeFile(wb, fileName + "_Report.xlsx");
+            var fileName = document.getElementById('reportTitle').innerText;
+            XLSX.writeFile(wb, fileName + ".xlsx");
         }
 
-        // PDF ડાઉનલોડ ફંક્શન
         function downloadPDF() {
             var element = document.getElementById('reportArea');
-            var fileName = document.getElementById('schoolSelect').value === 'All' ? 'All_Schools' : document.getElementById('schoolSelect').value;
-            
+            var fileName = document.getElementById('reportTitle').innerText;
             var opt = {
-                margin:       0.3,
-                filename:     fileName + '_Report.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' } // landscape એટલે આડું પેજ
+                margin: 0.3, filename: fileName + '.pdf', image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
             };
-            
             html2pdf().set(opt).from(element).save();
         }
     </script>
