@@ -3,80 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>સ્માર્ટ શાળા અને વિદ્યાર્થી રિપોર્ટિંગ સિસ્ટમ</title>
+    <title>એડવાન્સ શાળા ડેશબોર્ડ</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Mukta+Vaani:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- સ્પષ્ટ ગુજરાતી ફોન્ટ્સ માટે -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- પ્લગઇન્સ -->
+    <!-- લાઇબ્રેરીઓ (Plugins) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
     <style>
-        body { font-family: 'Mukta Vaani', sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1300px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); }
-        .header-title { text-align: center; color: #1e3a8a; border-bottom: 3px solid #3b82f6; padding-bottom: 15px; margin-bottom: 25px; font-size: 28px; }
-        
-        .controls-wrapper { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 25px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        select { padding: 10px 15px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 16px; min-width: 180px; outline: none; background: white; cursor: pointer; }
-        
-        button { padding: 10px 20px; border-radius: 6px; font-size: 16px; font-weight: bold; color: white; border: none; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;}
-        .btn-excel { background-color: #10b981; } .btn-excel:hover { background-color: #059669; }
-        .btn-pdf { background-color: #ef4444; } .btn-pdf:hover { background-color: #dc2626; }
-        .btn-print { background-color: #6366f1; } .btn-print:hover { background-color: #4f46e5; }
+        /* મોડર્ન ડેશબોર્ડ ડિઝાઇન */
+        :root {
+            --primary: #2563eb; --primary-hover: #1d4ed8;
+            --success: #10b981; --success-hover: #059669;
+            --danger: #ef4444; --danger-hover: #dc2626;
+            --bg-color: #f1f5f9; --card-bg: #ffffff;
+            --text-main: #0f172a; --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
 
-        .table-wrapper { overflow-x: auto; max-height: 600px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; background: white; }
-        th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; font-size: 14px; }
-        th { background-color: #1e293b; color: white; position: sticky; top: 0; z-index: 10; white-space: nowrap; }
-        tr:nth-child(even) { background-color: #f8fafc; }
-        tr:hover { background-color: #e0f2fe; }
-
-        #loading { text-align: center; font-size: 18px; color: #d97706; padding: 20px; font-weight: bold; display: none; }
-        #reportTitle { text-align: center; color: #334155; margin-bottom: 10px; font-size: 22px; }
-        .summary-count { text-align: center; font-size: 18px; font-weight: bold; color: #047857; margin-bottom: 20px; }
+        body { font-family: 'Noto Sans Gujarati', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-main); }
         
+        .dashboard-container { max-width: 1400px; margin: 0 auto; }
+        
+        .header { background: var(--card-bg); padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;}
+        .header h1 { margin: 0; font-size: 24px; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        
+        /* ફિલ્ટર એરિયા ડિઝાઇન */
+        .filter-section { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .filter-section-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; color: var(--text-muted); border-bottom: 2px solid var(--border-color); padding-bottom: 8px;}
+        
+        .dynamic-filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        
+        .filter-group { display: flex; flex-direction: column; gap: 5px; }
+        .filter-group label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+        select { padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 14px; outline: none; background: #f8fafc; font-family: inherit; transition: 0.2s;}
+        select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); background: white;}
+
+        /* બટન ડિઝાઇન */
+        .action-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        button { padding: 10px 18px; border-radius: 8px; font-size: 15px; font-weight: 600; color: white; border: none; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-family: inherit;}
+        .btn-refresh { background-color: var(--primary); } .btn-refresh:hover { background-color: var(--primary-hover); }
+        .btn-excel { background-color: var(--success); } .btn-excel:hover { background-color: var(--success-hover); }
+        .btn-pdf { background-color: var(--danger); } .btn-pdf:hover { background-color: var(--danger-hover); }
+        .btn-print { background-color: var(--text-muted); } .btn-print:hover { background-color: var(--text-main); }
+
+        /* રિપોર્ટ ટેબલ ડિઝાઇન */
+        .report-section { background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .report-header h2 { margin: 0; font-size: 20px; }
+        .summary-badge { background: #dbeafe; color: var(--primary); padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+
+        .table-container { overflow-x: auto; max-height: 65vh; border-radius: 8px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; min-width: 1200px; font-size: 14px; }
+        th, td { border-bottom: 1px solid var(--border-color); padding: 12px 15px; text-align: left; }
+        th { background-color: #f8fafc; color: var(--text-main); font-weight: 700; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 0 var(--border-color); white-space: nowrap;}
+        tr:hover td { background-color: #f1f5f9; }
+
+        #loading { display: none; text-align: center; padding: 20px; color: var(--primary); font-weight: bold; font-size: 16px; }
+
         @media print {
-            .controls-wrapper { display: none; }
-            body { padding: 0; background-color: white; }
-            .container { box-shadow: none; padding: 0; }
+            body { background: white; padding: 0; }
+            .header, .filter-section, .action-buttons { display: none !important; }
+            .report-section { box-shadow: none; padding: 0; }
+            .table-container { max-height: none; border: none; }
+            th { position: static; box-shadow: none; border: 1px solid #000; }
+            td { border: 1px solid #000; padding: 6px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1 class="header-title">🏫 સ્માર્ટ શાળા અને વિદ્યાર્થી રિપોર્ટિંગ સિસ્ટમ</h1>
+    <div class="dashboard-container">
         
-        <div class="controls-wrapper">
-            <!-- શીટ સિલેક્ટ કરવાનું ડ્રોપડાઉન (અહી તમારી નવી લિંક મૂકેલી છે) -->
-            <select id="sheetSelect" onchange="loadSheetData()">
-                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFyzMbBAmk86aQ2GHve4p_3bYKM7syasf3Rw458k9YOAqejxzdCuoeP32dAiF6rMNe2aIHXuuEXcn/pub?gid=1494751094&single=true&output=csv">વર્કબુક: વિદ્યાર્થીઓની સંપૂર્ણ માહિતી</option>
-                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFyzMbBAmk86aQ2GHve4p_3bYKM7syasf3Rw458k9YOAqejxzdCuoeP32dAiF6rMNe2aIHXuuEXcn/pub?output=csv">વર્કબુક: મુખ્ય ડેટા (EKANDAR)</option>
-            </select>
-
-            <!-- કઈ શાળાનો રિપોર્ટ? -->
-            <select id="schoolSelect" onchange="generateReport()">
-                <option value="All">બધી શાળાઓ (All)</option>
-            </select>
-
-            <!-- કયા ધોરણનો રિપોર્ટ? -->
-            <select id="stdSelect" onchange="generateReport()">
-                <option value="All">બધા ધોરણ (All Std)</option>
-            </select>
-
-            <button class="btn-excel" onclick="downloadExcel()">📊 Excel ડાઉનલોડ</button>
-            <button class="btn-pdf" onclick="downloadPDF()">📄 PDF ડાઉનલોડ</button>
-            <button class="btn-print" onclick="window.print()">🖨️ પ્રિન્ટ</button>
+        <div class="header">
+            <h1>🏫 સ્માર્ટ એડમિન ડેશબોર્ડ</h1>
+            <!-- ડેટા રિફ્રેશ બટન -->
+            <button class="btn-refresh" onclick="loadData(true)">🔄 નવો ડેટા લાવો (Refresh)</button>
         </div>
 
-        <div id="loading">ડેટા લોડ થઈ રહ્યો છે... ⏳</div>
-
-        <div id="reportArea">
-            <h2 id="reportTitle">બધી શાળાઓનો રિપોર્ટ</h2>
-            <div id="totalCount" class="summary-count">કુલ વિદ્યાર્થીઓ: 0</div>
+        <div class="filter-section">
+            <div class="filter-section-title">માહિતી ફિલ્ટર કરો (કોઈપણ કોલમ પરથી)</div>
             
-            <div class="table-wrapper">
+            <!-- અહી બધા હેડર ના ડ્રોપડાઉન જાતે જ બની જશે -->
+            <div id="dynamicFilters" class="dynamic-filters"></div>
+            
+            <div class="action-buttons">
+                <button class="btn-excel" onclick="downloadExcel()">📊 Excel ડાઉનલોડ</button>
+                <button class="btn-pdf" onclick="downloadPDF()">📄 PDF ડાઉનલોડ</button>
+                <button class="btn-print" onclick="window.print()">🖨️ પ્રિન્ટ કરો</button>
+            </div>
+        </div>
+
+        <div id="loading">⏳ ડેટા પ્રોસેસ થઈ રહ્યો છે...</div>
+
+        <div class="report-section" id="reportArea">
+            <div class="report-header">
+                <h2 id="reportTitle">રિપોર્ટ વિગતો</h2>
+                <div id="totalCount" class="summary-badge">કુલ રેકોર્ડ: 0</div>
+            </div>
+            
+            <div class="table-container">
                 <table id="dataTable">
                     <thead><tr id="tableHeader"></tr></thead>
                     <tbody id="tableBody"></tbody>
@@ -86,156 +117,178 @@
     </div>
 
     <script>
-        let globalData = [];
-        let schoolColIdx = -1;
-        let stdColIdx = -1;
-        let headerRowIdx = 0;
+        const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFyzMbBAmk86aQ2GHve4p_3bYKM7syasf3Rw458k9YOAqejxzdCuoeP32dAiF6rMNe2aIHXuuEXcn/pub?gid=1494751094&single=true&output=csv";
+        const CACHE_KEY = "schoolDataCache";
+        
+        let allData = [];
+        let headers = [];
 
-        window.onload = () => loadSheetData();
+        window.onload = () => loadData(false);
 
-        function loadSheetData() {
-            const url = document.getElementById('sheetSelect').value;
+        // ડેટા લોડ કરવાનું ફંક્શન (લોકલ સ્ટોરેજ સાથે)
+        function loadData(forceRefresh) {
             document.getElementById('loading').style.display = 'block';
             document.getElementById('tableBody').innerHTML = '';
-            document.getElementById('tableHeader').innerHTML = '';
-            document.getElementById('totalCount').innerText = '';
-
-            Papa.parse(url, {
-                download: true,
-                header: false,
-                complete: function(results) {
-                    globalData = results.data;
-                    document.getElementById('loading').style.display = 'none';
-                    findHeaderAndColumns();
-                    populateDropdowns();
-                    generateReport();
-                },
-                error: function() { alert("ડેટા લોડ કરવામાં મુશ્કેલી આવી છે."); }
-            });
-        }
-
-        // હેડર લાઈન અને કોલમ નંબર ઓટોમેટીક શોધવા
-        function findHeaderAndColumns() {
-            schoolColIdx = -1; stdColIdx = -1; headerRowIdx = 0;
             
-            for(let i=0; i<10; i++) {
-                if(!globalData[i]) continue;
-                for(let j=0; j<globalData[i].length; j++) {
-                    let cellVal = globalData[i][j] ? globalData[i][j].toString().trim() : "";
-                    if(cellVal.includes("શાળાનું નામ") || cellVal.includes("શાળા")) {
-                        schoolColIdx = j;
-                        headerRowIdx = i;
-                    }
-                    if(cellVal === "ધોરણ" || cellVal.includes("Std") || cellVal.includes("Standard") || cellVal === "ધૉરણ") {
-                        stdColIdx = j;
-                    }
-                }
-                if(schoolColIdx !== -1) break; // જો હેડર મળી જાય તો લૂપ બંધ કરો
+            const cachedData = localStorage.getItem(CACHE_KEY);
+
+            if (cachedData && !forceRefresh) {
+                // લોકલ સ્ટોરેજ માંથી ફાસ્ટ લોડ
+                processCSV(cachedData);
+            } else {
+                // ઇન્ટરનેટ પરથી નવો ડેટા લાવો
+                fetch(SHEET_URL)
+                    .then(response => response.text())
+                    .then(csvText => {
+                        localStorage.setItem(CACHE_KEY, csvText); // સેવ કરો
+                        processCSV(csvText);
+                    })
+                    .catch(error => {
+                        alert("ઇન્ટરનેટ એરર! કૃપા કરીને કનેક્શન તપાસો.");
+                        document.getElementById('loading').style.display = 'none';
+                    });
             }
-            if(schoolColIdx === -1) schoolColIdx = 0; 
         }
 
-        function populateDropdowns() {
-            const schoolSelect = document.getElementById('schoolSelect');
-            const stdSelect = document.getElementById('stdSelect');
-            schoolSelect.innerHTML = '<option value="All">બધી શાળાઓ (All)</option>'; 
-            stdSelect.innerHTML = '<option value="All">બધા ધોરણ (All Std)</option>'; 
+        // CSV ડેટા પ્રોસેસ કરવો
+        function processCSV(csvText) {
+            Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    let rawData = results.data;
+                    
+                    // હેડર લાઈન શોધો
+                    let headerIndex = 0;
+                    for(let i=0; i<10; i++) {
+                        if(rawData[i] && rawData[i].join("").includes("શાળાનું નામ")) {
+                            headerIndex = i; break;
+                        }
+                    }
+                    
+                    headers = rawData[headerIndex];
+                    // હેડર સિવાયનો બાકીનો ડેટા
+                    allData = rawData.slice(headerIndex + 1).filter(row => row.length > 2 && row[0]); 
 
-            const schoolNames = new Set();
-            const stdNames = new Set();
-
-            for (let i = headerRowIdx + 1; i < globalData.length; i++) {
-                let row = globalData[i];
-                if(!row || row.length === 0) continue;
-                
-                let schoolName = row[schoolColIdx] ? row[schoolColIdx].trim() : "";
-                if (schoolName && schoolName !== "" && !schoolName.includes("Count of")) {
-                    schoolNames.add(schoolName);
+                    document.getElementById('loading').style.display = 'none';
+                    buildDynamicFilters();
+                    generateReport();
                 }
-
-                if(stdColIdx !== -1) {
-                    let stdName = row[stdColIdx] ? row[stdColIdx].trim() : "";
-                    if(stdName && stdName !== "") stdNames.add(stdName);
-                }
-            }
-
-            Array.from(schoolNames).sort().forEach(school => {
-                schoolSelect.innerHTML += `<option value="${school}">${school}</option>`;
             });
-
-            Array.from(stdNames).sort((a,b) => a - b).forEach(std => {
-                stdSelect.innerHTML += `<option value="${std}">ધોરણ - ${std}</option>`;
-            });
-
-            stdSelect.style.display = (stdColIdx === -1 || stdNames.size === 0) ? 'none' : 'inline-block';
         }
 
+        // બધા હેડર માટે ડ્રોપડાઉન જાતે જ બનાવવાનું ફંક્શન
+        function buildDynamicFilters() {
+            const container = document.getElementById('dynamicFilters');
+            container.innerHTML = '';
+
+            headers.forEach((header, index) => {
+                if(!header || header.trim() === "" || header.includes("Count of") || header === "sr") return;
+
+                // આ કોલમનો યુનિક (Unique) ડેટા ભેગો કરો
+                let uniqueValues = new Set();
+                allData.forEach(row => {
+                    if(row[index] && row[index].trim() !== "") {
+                        uniqueValues.add(row[index].trim());
+                    }
+                });
+
+                // જો બધું અલગ જ હોય (જેમકે વિદ્યાર્થીનું નામ, એકાઉન્ટ નંબર) તો તેનું ડ્રોપડાઉન ન બનાવવું (UI બગડે નહિ)
+                // જો તમને બધા જ જોઈએ તો આ if કન્ડીશન કાઢી શકો છો.
+                if(uniqueValues.size > 0 && uniqueValues.size < allData.length * 0.9) {
+                    
+                    let group = document.createElement('div');
+                    group.className = 'filter-group';
+                    
+                    let label = document.createElement('label');
+                    label.innerText = header;
+                    
+                    let select = document.createElement('select');
+                    select.id = 'filter_' + index;
+                    select.onchange = generateReport; // સિલેક્ટ કરતા જ રિપોર્ટ બદલાશે
+
+                    select.innerHTML = '<option value="All">બધા (All)</option>';
+                    
+                    // આલ્ફાબેટ પ્રમાણે ગોઠવીને ઓપ્શન બનાવો
+                    Array.from(uniqueValues).sort().forEach(val => {
+                        let option = document.createElement('option');
+                        option.value = val; option.text = val;
+                        select.appendChild(option);
+                    });
+
+                    group.appendChild(label);
+                    group.appendChild(select);
+                    container.appendChild(group);
+                }
+            });
+        }
+
+        // સિલેક્ટ કરેલા ફિલ્ટર મુજબ ડેટા ટેબલમાં બતાવવો
         function generateReport() {
-            const selectedSchool = document.getElementById('schoolSelect').value;
-            const selectedStd = document.getElementById('stdSelect').value;
             const tableHeader = document.getElementById('tableHeader');
             const tableBody = document.getElementById('tableBody');
             
             tableHeader.innerHTML = '';
             tableBody.innerHTML = '';
-            if (globalData.length === 0 || !globalData[headerRowIdx]) return;
 
-            // હેડર છાપો (જેમાં બેંકનું નામ અને એકાઉન્ટ નંબર પણ ઓટોમેટિક આવી જશે)
-            globalData[headerRowIdx].forEach(col => { 
+            // હેડર છાપો
+            headers.forEach(h => {
                 let th = document.createElement('th');
-                th.textContent = col;
+                th.innerText = h;
                 tableHeader.appendChild(th);
             });
 
             let count = 0;
-            for (let i = headerRowIdx + 1; i < globalData.length; i++) {
-                let row = globalData[i];
-                if(!row || row.length === 0 || !row[schoolColIdx]) continue;
-                
-                let schoolMatch = (selectedSchool === 'All' || row[schoolColIdx].trim() === selectedSchool);
-                let stdMatch = true;
-                if(stdColIdx !== -1 && selectedStd !== 'All') {
-                    stdMatch = (row[stdColIdx] && row[stdColIdx].trim() === selectedStd);
-                }
+            
+            // ડેટા ફિલ્ટરિંગ
+            allData.forEach(row => {
+                let isMatch = true;
 
-                if (schoolMatch && stdMatch) {
+                // બધા ડ્રોપડાઉન ચેક કરો
+                headers.forEach((h, index) => {
+                    let selectBox = document.getElementById('filter_' + index);
+                    if(selectBox && selectBox.value !== 'All') {
+                        let cellValue = row[index] ? row[index].trim() : "";
+                        if(cellValue !== selectBox.value) {
+                            isMatch = false;
+                        }
+                    }
+                });
+
+                if(isMatch) {
                     let tr = document.createElement('tr');
                     row.forEach(col => {
                         let td = document.createElement('td');
-                        td.textContent = col;
+                        td.innerText = col;
                         tr.appendChild(td);
                     });
                     tableBody.appendChild(tr);
                     count++;
                 }
-            }
+            });
 
             if(count === 0){
-                tableBody.innerHTML = `<tr><td colspan="${globalData[headerRowIdx].length}" style="text-align:center; color:red; padding: 20px;">કોઈ ડેટા મળ્યો નથી!</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="${headers.length}" style="text-align:center; color:red; padding: 20px;">કોઈ માહિતી મળી નથી!</td></tr>`;
             }
 
-            let title = "";
-            if(selectedSchool !== 'All') title += selectedSchool;
-            else title += "બધી શાળાઓ";
-            if(selectedStd !== 'All') title += ` (ધોરણ ${selectedStd})`;
-            
-            document.getElementById('reportTitle').innerText = title + " નો રિપોર્ટ";
-            document.getElementById('totalCount').innerText = `કુલ વિદ્યાર્થીઓ: ${count}`;
+            document.getElementById('totalCount').innerText = `કુલ રેકોર્ડ: ${count}`;
         }
 
+        // Excel ડાઉનલોડ
         function downloadExcel() {
             var wb = XLSX.utils.table_to_book(document.getElementById('dataTable'), {sheet:"Report"});
-            var fileName = document.getElementById('reportTitle').innerText;
-            XLSX.writeFile(wb, fileName + ".xlsx");
+            XLSX.writeFile(wb, "Smart_Report.xlsx");
         }
 
+        // PDF ડાઉનલોડ (નવા હાઇ-ક્વોલિટી સેટિંગ્સ)
         function downloadPDF() {
             var element = document.getElementById('reportArea');
-            var fileName = document.getElementById('reportTitle').innerText;
             var opt = {
-                margin: 0.3, filename: fileName + '.pdf', image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' } 
-                /* નોંધ: વધારે કોલમ હોવાથી PDF નું પેજ A3 સાઇઝનું રાખેલ છે જેથી ડેટા કપાઈ ન જાય */
+                margin:       0.2,
+                filename:     'Smart_Report.pdf',
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { scale: 3, useCORS: true, letterRendering: true }, // scale વધાર્યું જેથી ફોન્ટ ન ફાટે
+                jsPDF:        { unit: 'in', format: 'a3', orientation: 'landscape' }
             };
             html2pdf().set(opt).from(element).save();
         }
