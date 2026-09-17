@@ -20,21 +20,27 @@
         .controls-wrapper { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-bottom: 25px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
         select { padding: 10px 15px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 16px; min-width: 180px; outline: none; background: white; cursor: pointer; }
         
-        button { padding: 10px 20px; border-radius: 6px; font-size: 16px; font-weight: bold; color: white; border: none; cursor: pointer; transition: 0.3s; }
+        button { padding: 10px 20px; border-radius: 6px; font-size: 16px; font-weight: bold; color: white; border: none; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;}
         .btn-excel { background-color: #10b981; } .btn-excel:hover { background-color: #059669; }
         .btn-pdf { background-color: #ef4444; } .btn-pdf:hover { background-color: #dc2626; }
         .btn-print { background-color: #6366f1; } .btn-print:hover { background-color: #4f46e5; }
 
         .table-wrapper { overflow-x: auto; max-height: 600px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
-        table { width: 100%; border-collapse: collapse; min-width: 900px; background: white; }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; background: white; }
         th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; font-size: 14px; }
-        th { background-color: #1e293b; color: white; position: sticky; top: 0; z-index: 10; }
+        th { background-color: #1e293b; color: white; position: sticky; top: 0; z-index: 10; white-space: nowrap; }
         tr:nth-child(even) { background-color: #f8fafc; }
         tr:hover { background-color: #e0f2fe; }
 
         #loading { text-align: center; font-size: 18px; color: #d97706; padding: 20px; font-weight: bold; display: none; }
         #reportTitle { text-align: center; color: #334155; margin-bottom: 10px; font-size: 22px; }
         .summary-count { text-align: center; font-size: 18px; font-weight: bold; color: #047857; margin-bottom: 20px; }
+        
+        @media print {
+            .controls-wrapper { display: none; }
+            body { padding: 0; background-color: white; }
+            .container { box-shadow: none; padding: 0; }
+        }
     </style>
 </head>
 <body>
@@ -43,11 +49,10 @@
         <h1 class="header-title">🏫 સ્માર્ટ શાળા અને વિદ્યાર્થી રિપોર્ટિંગ સિસ્ટમ</h1>
         
         <div class="controls-wrapper">
-            <!-- કઈ શીટ જોવી છે? -->
+            <!-- શીટ સિલેક્ટ કરવાનું ડ્રોપડાઉન (અહી તમારી નવી લિંક મૂકેલી છે) -->
             <select id="sheetSelect" onchange="loadSheetData()">
+                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFyzMbBAmk86aQ2GHve4p_3bYKM7syasf3Rw458k9YOAqejxzdCuoeP32dAiF6rMNe2aIHXuuEXcn/pub?gid=1494751094&single=true&output=csv">વર્કબુક: વિદ્યાર્થીઓની સંપૂર્ણ માહિતી</option>
                 <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFyzMbBAmk86aQ2GHve4p_3bYKM7syasf3Rw458k9YOAqejxzdCuoeP32dAiF6rMNe2aIHXuuEXcn/pub?output=csv">વર્કબુક: મુખ્ય ડેટા (EKANDAR)</option>
-                <option value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFyzMbBAmk86aQ2GHve4p_3bYKM7syasf3Rw458k9YOAqejxzdCuoeP32dAiF6rMNe2aIHXuuEXcn/pub?output=csv">વર્કબુક: વિદ્યાર્થી (Students)</option>
-                <!-- જો ભવિષ્યમાં નવી સાચી લિંક મળે તો ઉપરના value="..." માં પેસ્ટ કરી દેવી -->
             </select>
 
             <!-- કઈ શાળાનો રિપોર્ટ? -->
@@ -93,6 +98,7 @@
             document.getElementById('loading').style.display = 'block';
             document.getElementById('tableBody').innerHTML = '';
             document.getElementById('tableHeader').innerHTML = '';
+            document.getElementById('totalCount').innerText = '';
 
             Papa.parse(url, {
                 download: true,
@@ -120,13 +126,12 @@
                         schoolColIdx = j;
                         headerRowIdx = i;
                     }
-                    if(cellVal === "ધોરણ" || cellVal.includes("Std") || cellVal.includes("Standard")) {
+                    if(cellVal === "ધોરણ" || cellVal.includes("Std") || cellVal.includes("Standard") || cellVal === "ધૉરણ") {
                         stdColIdx = j;
                     }
                 }
                 if(schoolColIdx !== -1) break; // જો હેડર મળી જાય તો લૂપ બંધ કરો
             }
-            // જો શાળાની કોલમ ન મળે તો ડિફોલ્ટ પહેલી કોલમ ધારી લઈએ
             if(schoolColIdx === -1) schoolColIdx = 0; 
         }
 
@@ -158,12 +163,10 @@
                 schoolSelect.innerHTML += `<option value="${school}">${school}</option>`;
             });
 
-            // ધોરણને આંકડાકીય રીતે ગોઠવવા
             Array.from(stdNames).sort((a,b) => a - b).forEach(std => {
                 stdSelect.innerHTML += `<option value="${std}">ધોરણ - ${std}</option>`;
             });
 
-            // જો શીટમાં ધોરણ ન હોય તો ધોરણનું ડ્રોપડાઉન છુપાવી દેવું
             stdSelect.style.display = (stdColIdx === -1 || stdNames.size === 0) ? 'none' : 'inline-block';
         }
 
@@ -177,7 +180,7 @@
             tableBody.innerHTML = '';
             if (globalData.length === 0 || !globalData[headerRowIdx]) return;
 
-            // હેડર છાપો
+            // હેડર છાપો (જેમાં બેંકનું નામ અને એકાઉન્ટ નંબર પણ ઓટોમેટિક આવી જશે)
             globalData[headerRowIdx].forEach(col => { 
                 let th = document.createElement('th');
                 th.textContent = col;
@@ -185,7 +188,6 @@
             });
 
             let count = 0;
-            // ડેટા ફિલ્ટર કરો
             for (let i = headerRowIdx + 1; i < globalData.length; i++) {
                 let row = globalData[i];
                 if(!row || row.length === 0 || !row[schoolColIdx]) continue;
@@ -209,10 +211,9 @@
             }
 
             if(count === 0){
-                tableBody.innerHTML = `<tr><td colspan="${globalData[headerRowIdx].length}" style="text-align:center; color:red;">કોઈ ડેટા મળ્યો નથી!</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="${globalData[headerRowIdx].length}" style="text-align:center; color:red; padding: 20px;">કોઈ ડેટા મળ્યો નથી!</td></tr>`;
             }
 
-            // ટાઈટલ અને કાઉન્ટર અપડેટ કરો
             let title = "";
             if(selectedSchool !== 'All') title += selectedSchool;
             else title += "બધી શાળાઓ";
@@ -233,7 +234,8 @@
             var fileName = document.getElementById('reportTitle').innerText;
             var opt = {
                 margin: 0.3, filename: fileName + '.pdf', image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+                html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' } 
+                /* નોંધ: વધારે કોલમ હોવાથી PDF નું પેજ A3 સાઇઝનું રાખેલ છે જેથી ડેટા કપાઈ ન જાય */
             };
             html2pdf().set(opt).from(element).save();
         }
