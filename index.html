@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <title>શાળા રિપોર્ટિંગ પોર્ટલ</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        select, button { padding: 10px; font-size: 16px; margin-right: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        @media print {
+            #controls { display: none; } /* પ્રિન્ટ કરતી વખતે બટન હાઈડ કરવા */
+        }
+    </style>
+</head>
+<body>
+
+    <h2 id="reportTitle">શાળાવાર વિદ્યાર્થીઓનો રિપોર્ટ</h2>
+    
+    <div id="controls">
+        <select id="schoolSelect">
+            <option value="All">બધી શાળાઓ (All)</option>
+            <option value="ડી.એન.પી. અંગ્રેજી માધ્યમ શાળા">ડી.એન.પી. અંગ્રેજી માધ્યમ શાળા</option>
+            <!-- તમે અહી બીજી શાળાઓના નામ ઉમેરી શકો છો -->
+        </select>
+        <button onclick="generateReport()">રિપોર્ટ જુઓ</button>
+        <button onclick="window.print()">પ્રિન્ટ કરો</button>
+    </div>
+
+    <table id="dataTable">
+        <thead>
+            <tr id="tableHeader"></tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- ડેટા અહી દેખાશે -->
+        </tbody>
+    </table>
+
+    <script>
+        // અહીં તમારી Google Sheet ની CSV લિંક પેસ્ટ કરો
+        const csvUrl = 'YOUR_GOOGLE_SHEET_CSV_LINK_HERE';
+        let globalData = [];
+
+        // પેજ લોડ થાય ત્યારે ગૂગલ શીટમાંથી ડેટા ખેંચવો
+        fetch(csvUrl)
+            .then(response => response.text())
+            .then(csvText => {
+                const rows = csvText.split('\n');
+                globalData = rows.map(row => row.split(','));
+                alert("ડેટા સફળતાપૂર્વક લોડ થઈ ગયો છે!");
+            });
+
+        // રિપોર્ટ જનરેટ કરવાનું ફંક્શન
+        function generateReport() {
+            const selectedSchool = document.getElementById('schoolSelect').value;
+            const tableHeader = document.getElementById('tableHeader');
+            const tableBody = document.getElementById('tableBody');
+            
+            tableHeader.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (globalData.length === 0) return;
+
+            // હેડર (પહેલી લાઈન) સેટ કરો
+            globalData[0].forEach(col => {
+                let th = document.createElement('th');
+                th.textContent = col;
+                tableHeader.appendChild(th);
+            });
+
+            // સિલેક્ટ કરેલી શાળા મુજબ ડેટા ફિલ્ટર કરો
+            for (let i = 1; i < globalData.length; i++) {
+                let row = globalData[i];
+                // ધારો કે શાળાનું નામ બીજી કોલમ (index 1) માં છે. તમારા ડેટા મુજબ આ ઈન્ડેક્સ બદલી શકો છો.
+                let schoolNameInSheet = row[1] || ""; 
+
+                if (selectedSchool === 'All' || schoolNameInSheet.includes(selectedSchool)) {
+                    let tr = document.createElement('tr');
+                    row.forEach(col => {
+                        let td = document.createElement('td');
+                        td.textContent = col;
+                        tr.appendChild(td);
+                    });
+                    tableBody.appendChild(tr);
+                }
+            }
+            document.getElementById('reportTitle').innerText = selectedSchool + " નો રિપોર્ટ";
+        }
+    </script>
+</body>
+</html>
