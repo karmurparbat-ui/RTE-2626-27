@@ -70,7 +70,7 @@
             body { background: white; padding: 0; }
             .header, .filter-section, .action-buttons { display: none !important; }
             .report-section { box-shadow: none; padding: 0; }
-            .table-container { max-height: none; border: none; }
+            .table-container { max-height: none; border: none; overflow: visible;}
             th { position: static; box-shadow: none; border: 1px solid #000; }
             td { border: 1px solid #000; padding: 6px; }
         }
@@ -89,7 +89,6 @@
         <div class="filter-section">
             <div class="filter-section-title">માહિતી ફિલ્ટર કરો (કોઈપણ કોલમ પરથી)</div>
             
-            <!-- અહી બધા હેડર ના ડ્રોપડાઉન જાતે જ બની જશે -->
             <div id="dynamicFilters" class="dynamic-filters"></div>
             
             <div class="action-buttons">
@@ -117,15 +116,15 @@
     </div>
 
     <script>
-        const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFyzMbBAmk86aQ2GHve4p_3bYKM7syasf3Rw458k9YOAqejxzdCuoeP32dAiF6rMNe2aIHXuuEXcn/pub?gid=1494751094&single=true&output=csv";
-        const CACHE_KEY = "schoolDataCache";
+        // તમારી નવી લિંક અહી ઉમેરેલી છે
+        const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTrFTnUAweG-aWi73TadMUNzSAIt5ll94eGQv8hQ_GJ6wVFDuZ16rn9xlAJr9MA_v7jyPZbtSUZsqEx/pub?gid=910875912&single=true&output=csv";
+        const CACHE_KEY = "schoolDataCache_New";
         
         let allData = [];
         let headers = [];
 
         window.onload = () => loadData(false);
 
-        // ડેટા લોડ કરવાનું ફંક્શન (લોકલ સ્ટોરેજ સાથે)
         function loadData(forceRefresh) {
             document.getElementById('loading').style.display = 'block';
             document.getElementById('tableBody').innerHTML = '';
@@ -133,14 +132,12 @@
             const cachedData = localStorage.getItem(CACHE_KEY);
 
             if (cachedData && !forceRefresh) {
-                // લોકલ સ્ટોરેજ માંથી ફાસ્ટ લોડ
                 processCSV(cachedData);
             } else {
-                // ઇન્ટરનેટ પરથી નવો ડેટા લાવો
                 fetch(SHEET_URL)
                     .then(response => response.text())
                     .then(csvText => {
-                        localStorage.setItem(CACHE_KEY, csvText); // સેવ કરો
+                        localStorage.setItem(CACHE_KEY, csvText); 
                         processCSV(csvText);
                     })
                     .catch(error => {
@@ -150,7 +147,6 @@
             }
         }
 
-        // CSV ડેટા પ્રોસેસ કરવો
         function processCSV(csvText) {
             Papa.parse(csvText, {
                 header: false,
@@ -158,7 +154,6 @@
                 complete: function(results) {
                     let rawData = results.data;
                     
-                    // હેડર લાઈન શોધો
                     let headerIndex = 0;
                     for(let i=0; i<10; i++) {
                         if(rawData[i] && rawData[i].join("").includes("શાળાનું નામ")) {
@@ -167,7 +162,6 @@
                     }
                     
                     headers = rawData[headerIndex];
-                    // હેડર સિવાયનો બાકીનો ડેટા
                     allData = rawData.slice(headerIndex + 1).filter(row => row.length > 2 && row[0]); 
 
                     document.getElementById('loading').style.display = 'none';
@@ -177,15 +171,13 @@
             });
         }
 
-        // બધા હેડર માટે ડ્રોપડાઉન જાતે જ બનાવવાનું ફંક્શન
         function buildDynamicFilters() {
             const container = document.getElementById('dynamicFilters');
             container.innerHTML = '';
 
             headers.forEach((header, index) => {
-                if(!header || header.trim() === "" || header.includes("Count of") || header === "sr") return;
+                if(!header || header.trim() === "" || header.includes("Count of") || header === "sr" || header === "ક્રમ") return;
 
-                // આ કોલમનો યુનિક (Unique) ડેટા ભેગો કરો
                 let uniqueValues = new Set();
                 allData.forEach(row => {
                     if(row[index] && row[index].trim() !== "") {
@@ -193,8 +185,6 @@
                     }
                 });
 
-                // જો બધું અલગ જ હોય (જેમકે વિદ્યાર્થીનું નામ, એકાઉન્ટ નંબર) તો તેનું ડ્રોપડાઉન ન બનાવવું (UI બગડે નહિ)
-                // જો તમને બધા જ જોઈએ તો આ if કન્ડીશન કાઢી શકો છો.
                 if(uniqueValues.size > 0 && uniqueValues.size < allData.length * 0.9) {
                     
                     let group = document.createElement('div');
@@ -205,11 +195,10 @@
                     
                     let select = document.createElement('select');
                     select.id = 'filter_' + index;
-                    select.onchange = generateReport; // સિલેક્ટ કરતા જ રિપોર્ટ બદલાશે
+                    select.onchange = generateReport;
 
                     select.innerHTML = '<option value="All">બધા (All)</option>';
                     
-                    // આલ્ફાબેટ પ્રમાણે ગોઠવીને ઓપ્શન બનાવો
                     Array.from(uniqueValues).sort().forEach(val => {
                         let option = document.createElement('option');
                         option.value = val; option.text = val;
@@ -223,7 +212,6 @@
             });
         }
 
-        // સિલેક્ટ કરેલા ફિલ્ટર મુજબ ડેટા ટેબલમાં બતાવવો
         function generateReport() {
             const tableHeader = document.getElementById('tableHeader');
             const tableBody = document.getElementById('tableBody');
@@ -231,7 +219,6 @@
             tableHeader.innerHTML = '';
             tableBody.innerHTML = '';
 
-            // હેડર છાપો
             headers.forEach(h => {
                 let th = document.createElement('th');
                 th.innerText = h;
@@ -240,11 +227,9 @@
 
             let count = 0;
             
-            // ડેટા ફિલ્ટરિંગ
             allData.forEach(row => {
                 let isMatch = true;
 
-                // બધા ડ્રોપડાઉન ચેક કરો
                 headers.forEach((h, index) => {
                     let selectBox = document.getElementById('filter_' + index);
                     if(selectBox && selectBox.value !== 'All') {
@@ -274,20 +259,40 @@
             document.getElementById('totalCount').innerText = `કુલ રેકોર્ડ: ${count}`;
         }
 
-        // Excel ડાઉનલોડ
+        // નવી એડવાન્સ Excel ડાઉનલોડ સિસ્ટમ (કોલમ સાઈઝ સાથે)
         function downloadExcel() {
-            var wb = XLSX.utils.table_to_book(document.getElementById('dataTable'), {sheet:"Report"});
+            var table = document.getElementById('dataTable');
+            var wb = XLSX.utils.table_to_book(table, {sheet:"Report", raw: true});
+            var ws = wb.Sheets["Report"];
+
+            // ઑટો-ફિટ કોલમ લંબાઈ (Auto-fit Columns Logic)
+            var colWidths = [];
+            for (var i = 0; i < table.rows[0].cells.length; i++) {
+                var maxWidth = 10; // ન્યૂનતમ લંબાઈ 10 રાખીએ
+                for (var j = 0; j < table.rows.length; j++) {
+                    var cellText = table.rows[j].cells[i].innerText;
+                    if (cellText && cellText.length > maxWidth) {
+                        maxWidth = cellText.length;
+                    }
+                }
+                // ગુજરાતી શબ્દો માટે થોડી વધારાની જગ્યા (Padding) ઉમેરીએ
+                colWidths.push({ wch: maxWidth + 5 }); 
+            }
+            
+            // Excel ફાઇલમાં કોલમની લંબાઈ લાગુ પાડો
+            ws['!cols'] = colWidths;
+
+            // ફાઈલ સેવ કરો
             XLSX.writeFile(wb, "Smart_Report.xlsx");
         }
 
-        // PDF ડાઉનલોડ (નવા હાઇ-ક્વોલિટી સેટિંગ્સ)
         function downloadPDF() {
             var element = document.getElementById('reportArea');
             var opt = {
                 margin:       0.2,
                 filename:     'Smart_Report.pdf',
                 image:        { type: 'jpeg', quality: 1 },
-                html2canvas:  { scale: 3, useCORS: true, letterRendering: true }, // scale વધાર્યું જેથી ફોન્ટ ન ફાટે
+                html2canvas:  { scale: 3, useCORS: true, letterRendering: true }, 
                 jsPDF:        { unit: 'in', format: 'a3', orientation: 'landscape' }
             };
             html2pdf().set(opt).from(element).save();
